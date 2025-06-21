@@ -7,9 +7,10 @@ class DecisionEngine:
         self.action_templates = self.setup_action_templates()
 
     def setup_decision_rules(self):
+        """Define AI-driven decision rules"""
         return {
             'immediate_action': {
-                'conditions': ['signal_strength >= 8', 'urgency_score > 0.7', 'buying_intent_score > 0.8'],
+                'conditions': ['signal_strength >= 8', 'urgency_score > 0.7', 'buying_intent > 0.8'],
                 'action': 'schedule_immediate_outreach'
             },
             'high_priority': {
@@ -27,6 +28,7 @@ class DecisionEngine:
         }
 
     def setup_action_templates(self):
+        """Define automated action templates"""
         return {
             'email_outreach': {
                 'subject_templates': [
@@ -44,7 +46,7 @@ class DecisionEngine:
                 'demos': 'relevant to identified use cases'
             },
             'follow_up_cadence': {
-                'immediate': [1, 3, 7],
+                'immediate': [1, 3, 7],  # days
                 'high_priority': [3, 7, 14],
                 'nurture': [7, 14, 30]
             }
