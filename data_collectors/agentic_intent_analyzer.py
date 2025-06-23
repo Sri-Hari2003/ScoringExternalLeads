@@ -177,12 +177,23 @@ class AgenticProcessor:
             intent_result = self.analyzer.intent_classifier(text_content[:512], intent_labels)
             enhanced_signal['primary_intent'] = intent_result['labels'][0]
             enhanced_signal['intent_confidence'] = intent_result['scores'][0]
+            # Use zero-shot classifier's buying intent score
+            if 'buying intent' in intent_result['labels']:
+                idx = intent_result['labels'].index('buying intent')
+                enhanced_signal['buying_intent_score'] = intent_result['scores'][idx]
+            else:
+                # fallback to keyword-based
+                enhanced_signal.update(self.match_knowledge_patterns(text_content))
             entities = self.analyzer.ner_pipeline(text_content[:512])
             enhanced_signal['entities'] = [
                 {'text': ent['word'], 'label': ent['entity_group'], 'confidence': ent['score']}
                 for ent in entities if ent['score'] > 0.7
             ]
-            enhanced_signal.update(self.match_knowledge_patterns(text_content))
+            # Only update other pattern-based fields (not buying_intent_score)
+            pattern_fields = self.match_knowledge_patterns(text_content)
+            for k, v in pattern_fields.items():
+                if k != 'buying_intent_score':
+                    enhanced_signal[k] = v
             enhanced_signal.update(self.calculate_ai_scores(enhanced_signal))
             return enhanced_signal
         except Exception as e:

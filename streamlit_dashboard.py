@@ -142,7 +142,7 @@ def create_main_header():
     """Create main dashboard header"""
     st.markdown("""
     <div class="main-header">
-        <h1>🤖 AI-POWERED INTENT SIGNAL INSIGHTS REPORT</h1>
+        <h1>🤖 External Intent Signal Insights </h1>
         <p>Comprehensive analysis of intent signals with AI-powered recommendations</p>
     </div>
     """, unsafe_allow_html=True)

@@ -16,8 +16,8 @@ pip install -r requirements.txt
 # If streamlit is not found, install it first:
 pip install streamlit
 
-# Then run the dashboard:
-streamlit run streamlit_dashboard.py
+# Then run the dashboard (use python -m for PATH issues):
+python -m streamlit run streamlit_dashboard.py
 ```
 **What it does:**
 - Opens web interface at `http://localhost:8501`
@@ -169,6 +169,19 @@ User Input (Companies) → Data Collection → Signal Processing → AI Analysis
 }
 ```
 
+### **Field Computation & AI Model Usage Summary**
+
+| Field                  | How it's computed                                                                 | AI Model Used?         |
+|------------------------|-----------------------------------------------------------------------------------|------------------------|
+| **buying_intent_score**| **Zero-shot classifier's "buying intent" score** (BART/MNLI); keyword fallback   | ✅ (BART/MNLI)         |
+| primary_intent         | Zero-shot classification (e.g., "buying intent", "research intent", etc.)        | ✅ (BART/MNLI)         |
+| ai_sentiment           | Sentiment pipeline (RoBERTa)                                                     | ✅ (RoBERTa)           |
+| ai_sentiment_score     | Sentiment pipeline (RoBERTa)                                                     | ✅ (RoBERTa)           |
+| vader_sentiment        | VADER sentiment analyzer                                                         | ✅ (VADER)             |
+| entities               | NER pipeline (BERT)                                                              | ✅ (BERT)              |
+| company_fit_score      | Formula (uses buying_intent_score, intent_confidence, sentiment, etc.)           | ✅ (indirectly)        |
+| engagement_potential   | Formula (uses urgency, pain, buying_intent_score, engagement_score, etc.)        | ✅ (indirectly)        |
+
 ## 🛠️ **Key Technologies & Libraries**
 
 ### **Data Collection:**
@@ -233,7 +246,7 @@ pip install -r requirements.txt
 
 #### **Option A: Streamlit Dashboard (Recommended)**
 ```bash
-streamlit run streamlit_dashboard.py
+python -m streamlit run streamlit_dashboard.py
 ```
 - Opens web interface at `http://localhost:8501`
 - Enter company names interactively
