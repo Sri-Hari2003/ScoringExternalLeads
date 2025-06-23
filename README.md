@@ -1,6 +1,6 @@
 # 🤖 AI-Powered Intent Signal Analysis System
 
-A comprehensive system for collecting, analyzing, and generating AI-powered insights from intent signals across multiple data sources including Google News, Reddit, and job boards.
+A comprehensive system for collecting, analyzing, and generating AI-powered insights from intent signals across multiple data sources including Google News, Reddit, job boards, and company technology stacks (via BuiltWith).
 
 ## 🚀 **What to Run - Quick Commands**
 
@@ -31,7 +31,7 @@ python -m streamlit run streamlit_dashboard.py
 python main.py
 ```
 **What it does:**
-- Collects signals from Google News, Reddit, and job boards
+- Collects signals from Google News, Reddit, job boards, and company technology stacks (BuiltWith)
 - Uses default sample companies (Shopify, Stripe, etc.)
 - Generates CSV reports in timestamped folders
 - **Best for: Quick testing, batch processing**
@@ -58,18 +58,18 @@ User Input (Companies) → Data Collection → Signal Processing → AI Analysis
 
 #### **1. Signal Sources**
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Google News   │    │     Reddit      │    │   Job Boards    │
-│                 │    │                 │    │                 │
-│ • RSS Feeds     │    │ • Subreddits    │    │ • Indeed.com    │
-│ • News Search   │    │ • API Search    │    │ • Job Postings  │
-│ • Recent News   │    │ • User Posts    │    │ • Tech Keywords │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌────────────────────┐
+│   Google News   │    │     Reddit      │    │   Job Boards    │    │   BuiltWith Stack  │
+│                 │    │                 │    │                 │    │                    │
+│ • RSS Feeds     │    │ • Subreddits    │    │ • Indeed.com    │    │ • Tech Profile API │
+│ • News Search   │    │ • API Search    │    │ • Job Postings  │    │ • Web Tech Lookup  │
+│ • Recent News   │    │ • User Posts    │    │ • Tech Keywords │    │ • Stack Analysis   │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └────────────────────┘
 ```
 
 #### **2. Collection Tools & Libraries**
 - **`feedparser`** - Google News RSS feeds
-- **`requests`** - Reddit API calls, web scraping
+- **`requests`** - Reddit API calls, web scraping, BuiltWith API
 - **`beautifulsoup4`** - HTML parsing (job boards)
 - **`newspaper3k`** - Article extraction
 - **Rate limiting** - Respectful API usage
@@ -80,6 +80,7 @@ User Input (Companies) → Data Collection → Signal Processing → AI Analysis
 1. Google News: RSS feed search → Parse articles → Extract metadata
 2. Reddit: API search → Parse posts → Extract engagement metrics  
 3. Job Boards: Web scraping → Parse job listings → Extract tech requirements
+4. BuiltWith: API lookup → Parse technology stack → Score intent from stack
 ```
 
 ### **Signal Processing Pipeline**
@@ -295,14 +296,15 @@ csv_outputs/
     ├── signals_news_media.csv                # News signals
     ├── signals_social_media.csv              # Social media signals
     ├── signals_job_board.csv                 # Job posting signals
+    ├── signals_technology_stack.csv          # Technology stack (BuiltWith) signals
     └── signals_[company_name].csv            # Company-specific files
 ```
 
 ## 📊 **What You'll Get**
 
 ### **Data Collection Results:**
-- **Real-time signals** from Google News, Reddit, and job boards
-- **Signal strength scoring** based on relevance and engagement
+- **Real-time signals** from Google News, Reddit, job boards, and company technology stacks (BuiltWith)
+- **Signal strength scoring** based on relevance, engagement, and technology stack analysis
 - **Source categorization** and metadata extraction
 - **Timestamped data** for trend analysis
 

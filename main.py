@@ -3,6 +3,7 @@ from data_collectors.enhanced_google_news_collector import EnhancedGoogleNewsCol
 from data_collectors.enhanced_reddit_collector import EnhancedRedditCollector
 from data_collectors.enhanced_job_posting_collector import EnhancedJobPostingCollector
 from data_collectors.enhanced_signal_analyzer import EnhancedSignalAnalyzer
+from data_collectors.builtwith_collector import BuiltWithCollector
 import pandas as pd
 from datetime import datetime
 import os
@@ -114,6 +115,17 @@ def run_enhanced_intent_signal_collection(target_companies=None):
     enhanced_google_news.search_company_news(target_companies[:5], KEYWORDS[:5], days_back=14)
     enhanced_reddit.search_reddit_mentions(target_companies[:4], KEYWORDS[:4])
     enhanced_jobs.search_job_postings(target_companies[:3], TECH_KEYWORDS[:5])
+    # BuiltWith technology stack collection
+    try:
+        builtwith_collector = BuiltWithCollector()
+        # Assume company domains are companyname.com (can be improved with a mapping)
+        domains = [f"{company.lower().replace(' ', '')}.com" for company in target_companies[:5]]
+        builtwith_signals = builtwith_collector.collect_builtwith_data(domains)
+        for signal in builtwith_signals:
+            collector.save_enhanced_signal(signal)
+        print(f"✅ BuiltWith technology stack signals collected for {len(domains)} domains")
+    except Exception as e:
+        print(f"❌ BuiltWith collection failed: {e}")
     print(f"\n✅ Enhanced collection complete! Found {len(collector.detailed_signals)} comprehensive signals")
     analyzer = EnhancedSignalAnalyzer(collector)
     comprehensive_df = analyzer.export_comprehensive_csv("comprehensive_intent_signals.csv")

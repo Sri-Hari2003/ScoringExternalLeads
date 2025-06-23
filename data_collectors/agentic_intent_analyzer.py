@@ -164,6 +164,16 @@ class AgenticProcessor:
     def analyze_signal_with_ai(self, signal):
         enhanced_signal = signal.copy()
         try:
+            # Special handling for BuiltWith technology stack signals
+            if signal.get('signal_type') == 'Technology Stack' and 'intent_label' in signal and 'intent_scores' in signal:
+                enhanced_signal['primary_intent'] = signal['intent_label']
+                # Use the score for the assigned label as confidence
+                enhanced_signal['intent_confidence'] = signal['intent_scores'].get(signal['intent_label'], 0.0)
+                # Set buying_intent_score if the label is buying intent
+                enhanced_signal['buying_intent_score'] = signal['intent_scores'].get('buying intent', 0.0)
+                # Skip text-based intent/sentiment/NER for these signals
+                enhanced_signal.update(self.calculate_ai_scores(enhanced_signal))
+                return enhanced_signal
             text_content = f"{signal.get('description', '')} {signal.get('content_snippet', '')}"
             sentiment_result = self.analyzer.sentiment_analyzer(text_content[:512])
             enhanced_signal['ai_sentiment'] = sentiment_result[0]['label']
@@ -201,31 +211,52 @@ class AgenticProcessor:
             return enhanced_signal
 
     def match_knowledge_patterns(self, text):
-        text_lower = text.lower()
-        kb = self.analyzer.knowledge_base
-        buying_signals = sum(1 for signal in kb['buying_signals'] if signal in text_lower)
-        buying_intent_score = min(1.0, buying_signals / 3)
-        pain_points = [point for point in kb['pain_points'] if point in text_lower]
-        pain_score = min(1.0, len(pain_points) / 2)
-        urgency_indicators = [ind for ind in kb['urgency_indicators'] if ind in text_lower]
-        urgency_score = min(1.0, len(urgency_indicators) / 2)
-        detected_stage = 'unknown'
-        for stage, keywords in kb['company_stages'].items():
-            if any(keyword in text_lower for keyword in keywords):
-                detected_stage = stage
-                break
-        tech_interests = []
-        for category, keywords in kb['tech_categories'].items():
-            if any(keyword in text_lower for keyword in keywords):
-                tech_interests.append(category)
+        """
+        Use zero-shot classification for pain_score, urgency_score, detected_company_stage, and technology_interests.
+        Fallback to pattern matching only if the model fails.
+        """
+        try:
+            # Pain score
+            pain_labels = ['pain point', 'not pain point']
+            pain_result = self.analyzer.intent_classifier(text[:512], pain_labels)
+            pain_score = pain_result['scores'][pain_result['labels'].index('pain point')]
+
+            # Urgency score
+            urgency_labels = ['urgent', 'not urgent']
+            urgency_result = self.analyzer.intent_classifier(text[:512], urgency_labels)
+            urgency_score = urgency_result['scores'][urgency_result['labels'].index('urgent')]
+
+            # Company stage
+            stage_labels = ['startup', 'growth', 'enterprise', 'unknown']
+            stage_result = self.analyzer.intent_classifier(text[:512], stage_labels)
+            detected_stage = stage_result['labels'][0]
+
+            # Technology interests (multi-label)
+            tech_categories = list(self.analyzer.knowledge_base['tech_categories'].keys())
+            tech_result = self.analyzer.intent_classifier(text[:512], tech_categories)
+            tech_interests = [label for label, score in zip(tech_result['labels'], tech_result['scores']) if score > 0.3]
+        except Exception as e:
+            # Fallback to pattern matching
+            text_lower = text.lower()
+            kb = self.analyzer.knowledge_base
+            pain_points = [point for point in kb['pain_points'] if point in text_lower]
+            pain_score = min(1.0, len(pain_points) / 2)
+            urgency_indicators = [ind for ind in kb['urgency_indicators'] if ind in text_lower]
+            urgency_score = min(1.0, len(urgency_indicators) / 2)
+            detected_stage = 'unknown'
+            for stage, keywords in kb['company_stages'].items():
+                if any(keyword in text_lower for keyword in keywords):
+                    detected_stage = stage
+                    break
+            tech_interests = []
+            for category, keywords in kb['tech_categories'].items():
+                if any(keyword in text_lower for keyword in keywords):
+                    tech_interests.append(category)
         return {
-            'buying_intent_score': buying_intent_score,
             'pain_score': pain_score,
             'urgency_score': urgency_score,
             'detected_company_stage': detected_stage,
             'technology_interests': tech_interests,
-            'matched_pain_points': pain_points,
-            'urgency_indicators': urgency_indicators
         }
 
     def calculate_ai_scores(self, signal):
@@ -303,6 +334,16 @@ class AgenticProcessor:
             'research_needed': f"Low confidence ({signal.get('confidence_level', 0):.2f}) requires additional research before action."
         }
         return reasoning_templates.get(rule_name, "Standard processing rule applied.")
+
+    # Feedback logging for future retraining
+    def save_feedback(self, signal_id, field, user_label, model_score, text):
+        """
+        Save user feedback for a given signal and field to a CSV log for future retraining.
+        """
+        import csv
+        with open('feedback_log.csv', 'a', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow([signal_id, field, user_label, model_score, text])
 
 class AgenticReportGenerator:
     """
